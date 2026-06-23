@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:open_streetmap_app/feature/map_screen/view/map_screen.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -7,11 +8,22 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
-      title: 'OpenStreetMap Demo',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+      title: 'OSM Navigation',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData.dark().copyWith(
+        colorScheme: const ColorScheme.dark(
+          primary: Color(0xFF4A9EFF),
+          secondary: Color(0xFFFF6B35),
+          surface: Color(0xFF1A2332),
+        ),
+        scaffoldBackgroundColor: const Color(0xFF1A2332),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Color(0xFF1A2332),
+          foregroundColor: Colors.white,
+          elevation: 0,
+        ),
       ),
-      //home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: MapScreen(),
     );
   }
 }

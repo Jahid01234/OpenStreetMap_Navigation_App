@@ -1,5 +1,301 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:open_streetmap_app/core/service/location_service.dart';
+
+
+enum NavState { idle, searching, routeReady, navigating }
 
 class MapConnectionController extends GetxController{
+  // ── Map ───────────────────────────────────────────────────────────────────
+  final mapController = MapController();
 
+  // ── Observables ───────────────────────────────────────────────────────────
+  final navState = NavState.idle.obs;
+  final currentPosition = Rxn<LatLng>();
+  final destinationPoint = Rxn<LatLng>();
+  final routeResult = Rxn<RouteResult>();
+  final currentAddress = ''.obs;
+  final destinationAddress = ''.obs;
+  final searchQuery = ''.obs;
+  final searchResults = <SearchResult>[].obs;
+  final isLoadingRoute = false.obs;
+  final isLoadingSearch = false.obs;
+  final currentStepIndex = 0.obs;
+  final remainingDistance = ''.obs;
+  final remainingDuration = ''.obs;
+  final userHeading = 0.0.obs;
+  final isMapFollowing = true.obs;
+
+  // ── Internal ──────────────────────────────────────────────────────────────
+  StreamSubscription<Position>? _locationSub;
+  Timer? _searchDebounce;
+  final Distance _distCalc = const Distance();
+
+  // ── Lifecycle ─────────────────────────────────────────────────────────────
+
+  @override
+  void onInit() {
+    super.onInit();
+    _initLocation();
+  }
+
+  @override
+  void onClose() {
+    _locationSub?.cancel();
+    _searchDebounce?.cancel();
+    super.onClose();
+  }
+
+  // ── Location Init ─────────────────────────────────────────────────────────
+
+  Future<void> _initLocation() async {
+    final pos = await LocationService.getCurrentPosition();
+    if (pos != null) {
+      _updatePosition(LatLng(pos.latitude, pos.longitude));
+    }
+    _startLiveTracking();
+  }
+
+  void _startLiveTracking() {
+    _locationSub = LocationService.getLiveLocationStream().listen((pos) {
+      final newPos = LatLng(pos.latitude, pos.longitude);
+      userHeading.value = pos.heading;
+      _updatePosition(newPos);
+
+      if (navState.value == NavState.navigating) {
+        _updateNavigationProgress(newPos);
+      }
+    });
+  }
+
+  void _updatePosition(LatLng pos) {
+    currentPosition.value = pos;
+
+    if (isMapFollowing.value && navState.value != NavState.idle) {
+      mapController.move(pos, mapController.camera.zoom);
+    }
+
+    // Fetch address in background
+    LocationService.reverseGeocode(pos).then((addr) {
+      currentAddress.value = addr;
+    });
+  }
+
+  // ── Search ────────────────────────────────────────────────────────────────
+
+  void onSearchChanged(String query) {
+    searchQuery.value = query;
+    _searchDebounce?.cancel();
+    if (query.trim().length < 3) {
+      searchResults.clear();
+      return;
+    }
+    _searchDebounce = Timer(const Duration(milliseconds: 600), () async {
+      isLoadingSearch.value = true;
+      final results = await LocationService.searchPlace(query);
+      searchResults.assignAll(results);
+      isLoadingSearch.value = false;
+    });
+  }
+
+  // ── Destination Selection ─────────────────────────────────────────────────
+
+  Future<void> selectDestination(LatLng point, {String? address}) async {
+    destinationPoint.value = point;
+    searchResults.clear();
+    navState.value = NavState.searching;
+
+    // Reverse geocode if no address provided
+    if (address != null) {
+      destinationAddress.value = address;
+    } else {
+      LocationService.reverseGeocode(point).then((addr) {
+        destinationAddress.value = addr;
+      });
+    }
+
+    await _fetchRoute();
+  }
+
+  Future<void> selectFromSearch(SearchResult result) async {
+    await selectDestination(
+      result.location,
+      address: result.displayName,
+    );
+  }
+
+  Future<void> onMapTap(LatLng point) async {
+    if (navState.value == NavState.navigating) return;
+    await selectDestination(point);
+  }
+
+  // ── Route Fetch ───────────────────────────────────────────────────────────
+
+  Future<void> _fetchRoute() async {
+    final origin = currentPosition.value;
+    final dest = destinationPoint.value;
+    if (origin == null || dest == null) return;
+
+    isLoadingRoute.value = true;
+    final result = await LocationService.getRoute(
+      origin: origin,
+      destination: dest,
+    );
+    isLoadingRoute.value = false;
+
+    if (result != null) {
+      routeResult.value = result;
+      remainingDistance.value = result.distanceText;
+      remainingDuration.value = result.durationText;
+      navState.value = NavState.routeReady;
+      _fitRouteOnMap(result.points);
+    } else {
+      Get.snackbar(
+        'Error',
+        'Could not find a route. Check your connection.',
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.red.shade700,
+        colorText: Colors.white,
+      );
+      navState.value = NavState.idle;
+    }
+  }
+
+  void _fitRouteOnMap(List<LatLng> points) {
+    if (points.isEmpty) return;
+    final bounds = LatLngBounds.fromPoints(points);
+    mapController.fitCamera(
+      CameraFit.bounds(
+        bounds: bounds,
+        padding: const EdgeInsets.fromLTRB(40, 80, 40, 200),
+      ),
+    );
+  }
+
+  // ── Navigation ────────────────────────────────────────────────────────────
+
+  void startNavigation() {
+    navState.value = NavState.navigating;
+    currentStepIndex.value = 0;
+    isMapFollowing.value = true;
+    if (currentPosition.value != null) {
+      mapController.move(currentPosition.value!, 17.0);
+    }
+  }
+
+  void _updateNavigationProgress(LatLng pos) {
+    final route = routeResult.value;
+    if (route == null) return;
+
+    final dest = destinationPoint.value;
+    if (dest == null) return;
+
+    // Remaining distance to destination
+    final distToDest = _distCalc(pos, dest);
+    if (distToDest < 1000) {
+      remainingDistance.value = '${distToDest.toInt()} m';
+    } else {
+      remainingDistance.value =
+      '${(distToDest / 1000).toStringAsFixed(1)} km';
+    }
+
+    // Arrival check
+    if (distToDest < 30) {
+      _onArrived();
+      return;
+    }
+
+    // Advance steps
+    final steps = route.steps;
+    if (currentStepIndex.value < steps.length - 1) {
+      // Find closest point on route
+      final nextStep = steps[currentStepIndex.value];
+      if (nextStep.distanceMeters > 0 && distToDest < 50) {
+        currentStepIndex.value++;
+      }
+    }
+  }
+
+  void _onArrived() {
+    navState.value = NavState.idle;
+    Get.dialog(
+      AlertDialog(
+        backgroundColor: const Color(0xFF1A2332),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text(
+          '🎉 Arrived!',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        content: Text(
+          'You have reached ${destinationAddress.value}',
+          style: const TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Get.back();
+              clearRoute();
+            },
+            child: const Text(
+              'Done',
+              style: TextStyle(color: Color(0xFF4A9EFF)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── Controls ──────────────────────────────────────────────────────────────
+
+  void stopNavigation() {
+    navState.value = NavState.routeReady;
+    isMapFollowing.value = false;
+  }
+
+  void clearRoute() {
+    navState.value = NavState.idle;
+    destinationPoint.value = null;
+    routeResult.value = null;
+    destinationAddress.value = '';
+    searchQuery.value = '';
+    currentStepIndex.value = 0;
+    isMapFollowing.value = true;
+
+    if (currentPosition.value != null) {
+      mapController.move(currentPosition.value!, 15.0);
+    }
+  }
+
+  void toggleMapFollow() {
+    isMapFollowing.value = !isMapFollowing.value;
+    if (isMapFollowing.value && currentPosition.value != null) {
+      mapController.move(currentPosition.value!, mapController.camera.zoom);
+    }
+  }
+
+  void recenterMap() {
+    if (currentPosition.value != null) {
+      isMapFollowing.value = true;
+      mapController.move(currentPosition.value!, 16.0);
+    }
+  }
+
+  // ── Getters ───────────────────────────────────────────────────────────────
+
+  RouteStep? get currentStep {
+    final route = routeResult.value;
+    if (route == null) return null;
+    final idx = currentStepIndex.value;
+    if (idx < route.steps.length) return route.steps[idx];
+    return null;
+  }
+
+  bool get isNavigating => navState.value == NavState.navigating;
+  bool get hasRoute => routeResult.value != null;
 }
