@@ -23,7 +23,7 @@ class MapScreen extends StatelessWidget {
                ),
                children: [
                  TileLayer(
-                   maxZoom: 19,
+                   maxZoom: 15,
                    urlTemplate: AppSecret.osmTileUrl,
                    userAgentPackageName: AppSecret.userAgentPackageName
                  ),

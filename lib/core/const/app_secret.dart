@@ -26,7 +26,7 @@ class AppSecret{
   static const double routeZoom = 13.0;
 
   // Initial center LatLong................
-  static const LatLng initialCenterLatLng = LatLng(20.0000, 30.9999);
+  static const LatLng initialCenterLatLng = LatLng(23.602, 89.833);
 
   // My package name ................
   static const String userAgentPackageName = "com.example.open_streetmap_app";
