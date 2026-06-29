@@ -32,6 +32,8 @@ class MapConnectionController extends GetxController {
   final isSatelliteView = false.obs;
   StreamSubscription<Position>? _locationSub;
   Timer? _searchDebounce;
+  Timer? _navSimulationTimer;
+  int _routePointIndex = 0;
   final Distance _distCalc = const Distance();
 
 
@@ -46,6 +48,7 @@ class MapConnectionController extends GetxController {
   void onClose() {
     _locationSub?.cancel();
     _searchDebounce?.cancel();
+    _navSimulationTimer?.cancel();
     super.onClose();
   }
 
@@ -174,43 +177,94 @@ class MapConnectionController extends GetxController {
   //── Navigation ────────────────────────────────────────────────────────────
   void startNavigation() {
     navState.value = NavState.navigating;
+
     currentStepIndex.value = 0;
+
     isMapFollowing.value = true;
+
     if (currentPosition.value != null) {
       mapController.move(currentPosition.value!, 17.0);
     }
+
+    _startSimulation();
+  }
+
+  void _startSimulation() {
+    final route = routeResult.value;
+
+    if (route == null || route.points.isEmpty) return;
+
+    _routePointIndex = 0;
+
+    _navSimulationTimer?.cancel();
+
+    _navSimulationTimer =
+        Timer.periodic(const Duration(seconds: 1), (timer) {
+
+          if (_routePointIndex >= route.points.length) {
+            timer.cancel();
+            _onArrived();
+            return;
+          }
+
+          final point = route.points[_routePointIndex];
+
+          currentPosition.value = point;
+
+          if (isMapFollowing.value) {
+            mapController.move(point, 17);
+          }
+
+          _updateNavigationProgress(point);
+
+          _routePointIndex++;
+        });
   }
 
   void _updateNavigationProgress(LatLng pos) {
     final route = routeResult.value;
+
     if (route == null) return;
 
     final dest = destinationPoint.value;
+
     if (dest == null) return;
 
-    // Remaining distance to destination
     final distToDest = _distCalc(pos, dest);
+
+    // Remaining Distance
     if (distToDest < 1000) {
-      remainingDistance.value = '${distToDest.toInt()} m';
+      remainingDistance.value =
+      '${distToDest.toInt()} m';
     } else {
       remainingDistance.value =
       '${(distToDest / 1000).toStringAsFixed(1)} km';
     }
 
-    // Arrival check
-    if (distToDest < 30) {
-      _onArrived();
-      return;
+    // Remaining ETA
+    const speedKmH = 40.0;
+
+    final remainingMinutes =
+        ((distToDest / 1000) / speedKmH) * 60;
+
+    remainingDuration.value =
+    '${remainingMinutes.ceil()} min';
+
+    // Step Progress
+    if (route.steps.isNotEmpty) {
+      final progress =
+          _routePointIndex / route.points.length;
+
+      final step =
+      (progress * route.steps.length).floor();
+
+      currentStepIndex.value =
+          step.clamp(0, route.steps.length - 1);
     }
 
-    // Advance steps
-    final steps = route.steps;
-    if (currentStepIndex.value < steps.length - 1) {
-      // Find closest point on route
-      final nextStep = steps[currentStepIndex.value];
-      if (nextStep.distanceMeters > 0 && distToDest < 50) {
-        currentStepIndex.value++;
-      }
+    // Arrived
+    if (distToDest < 30) {
+      _onArrived();
     }
   }
 
@@ -247,7 +301,10 @@ class MapConnectionController extends GetxController {
 
   // ── Controls ──────────────────────────────────────────────────────────────
   void stopNavigation() {
+    _navSimulationTimer?.cancel();
+
     navState.value = NavState.routeReady;
+
     isMapFollowing.value = false;
   }
 
@@ -259,6 +316,7 @@ class MapConnectionController extends GetxController {
     searchQuery.value = '';
     currentStepIndex.value = 0;
     isMapFollowing.value = true;
+    _navSimulationTimer?.cancel();
 
     if (currentPosition.value != null) {
       mapController.move(currentPosition.value!, 15.0);
