@@ -19,12 +19,29 @@ class LocationService {
         permission == LocationPermission.always;
   }
 
+  // static Future<Position?> getCurrentPosition() async {
+  //   final hasPermission = await requestPermission();
+  //   if (!hasPermission) return null;
+  //   return await Geolocator.getCurrentPosition(
+  //     desiredAccuracy: LocationAccuracy.high,
+  //   );
+  // }
   static Future<Position?> getCurrentPosition() async {
-    final hasPermission = await requestPermission();
-    if (!hasPermission) return null;
-    return await Geolocator.getCurrentPosition(
-      desiredAccuracy: LocationAccuracy.high,
-    );
+    try {
+      final hasPermission = await requestPermission();
+      if (!hasPermission) return null;
+
+      // Location service (GPS) on ache kina check
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) return null;
+
+      return await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+    } catch (e) {
+      debugPrint('getCurrentPosition error: $e');
+      return null;
+    }
   }
 
   static Stream<Position> getLiveLocationStream(){

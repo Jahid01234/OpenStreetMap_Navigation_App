@@ -17,6 +17,7 @@ class MapConnectionController extends GetxController {
   final navState = NavState.idle.obs;
   final currentPosition = Rxn<LatLng>();
   final destinationPoint = Rxn<LatLng>();
+  final navigationPosition = Rxn<LatLng>();
   final routeResult = Rxn<RouteResultModel>();
   final currentAddress = ''.obs;
   final destinationAddress = ''.obs;
@@ -182,6 +183,8 @@ class MapConnectionController extends GetxController {
 
     isMapFollowing.value = true;
 
+    navigationPosition.value = currentPosition.value;
+
     if (currentPosition.value != null) {
       mapController.move(currentPosition.value!, 17.0);
     }
@@ -209,7 +212,8 @@ class MapConnectionController extends GetxController {
 
           final point = route.points[_routePointIndex];
 
-          currentPosition.value = point;
+          //currentPosition.value = point;
+          navigationPosition.value = point;
 
           if (isMapFollowing.value) {
             mapController.move(point, 17);
@@ -306,12 +310,15 @@ class MapConnectionController extends GetxController {
     navState.value = NavState.routeReady;
 
     isMapFollowing.value = false;
+
+    navigationPosition.value = null;
   }
 
   void clearRoute() {
     navState.value = NavState.idle;
     destinationPoint.value = null;
     routeResult.value = null;
+    navigationPosition.value = null;
     destinationAddress.value = '';
     searchQuery.value = '';
     currentStepIndex.value = 0;
