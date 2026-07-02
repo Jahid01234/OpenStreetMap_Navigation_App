@@ -19,13 +19,7 @@ class LocationService {
         permission == LocationPermission.always;
   }
 
-  // static Future<Position?> getCurrentPosition() async {
-  //   final hasPermission = await requestPermission();
-  //   if (!hasPermission) return null;
-  //   return await Geolocator.getCurrentPosition(
-  //     desiredAccuracy: LocationAccuracy.high,
-  //   );
-  // }
+
   static Future<Position?> getCurrentPosition() async {
     try {
       final hasPermission = await requestPermission();

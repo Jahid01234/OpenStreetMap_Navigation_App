@@ -19,10 +19,7 @@ class RouteReadyBanner extends StatelessWidget {
           color: const Color(0xFF1A2332),
           borderRadius: BorderRadius.circular(10),
           boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.2),
-              blurRadius: 8,
-            ),
+            BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 8),
           ],
         ),
         child: Row(

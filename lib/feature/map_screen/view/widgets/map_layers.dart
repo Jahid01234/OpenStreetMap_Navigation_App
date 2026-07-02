@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:get/get.dart';
 import 'package:open_streetmap_app/feature/map_screen/controller/map_connection_controller.dart';
+import 'package:open_streetmap_app/feature/map_screen/view/widgets/current_location_marker.dart';
+import 'package:open_streetmap_app/feature/map_screen/view/widgets/navigation_marker.dart';
 
 class MapLayersWidget extends StatelessWidget {
   final MapConnectionController controller;
@@ -44,7 +46,7 @@ class MapLayersWidget extends StatelessWidget {
                   point: currentPos,
                   width: 60,
                   height: 60,
-                  child: _CurrentLocationMarker(
+                  child: CurrentLocationMarker(
                     heading: controller.userHeading.value,
                   ),
                 ),
@@ -73,7 +75,7 @@ class MapLayersWidget extends StatelessWidget {
                     point: navPos,
                     width: 60,
                     height: 60,
-                    child: _NavigationMarker(
+                    child: NavigationMarker(
                       heading: controller.userHeading.value,
                     ),
                   ),
@@ -85,129 +87,7 @@ class MapLayersWidget extends StatelessWidget {
   }
 }
 
-class _CurrentLocationMarker extends StatelessWidget {
-  final double heading;
-  const _CurrentLocationMarker({required this.heading});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          // Pulsing outer ring
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: const Color(0xFF4A9EFF).withOpacity(0.2),
-              border: Border.all(
-                color: const Color(0xFF4A9EFF).withOpacity(0.5),
-                width: 1.5,
-              ),
-            ),
-          ),
-          // Direction arrow
-          Transform.rotate(
-            angle: heading * (3.14159 / 180),
-            child: Container(
-              width: 20,
-              height: 20,
-              decoration: const BoxDecoration(
-                shape: BoxShape.circle,
-                color: Color(0xFF4A9EFF),
-              ),
-              child: const Icon(
-                Icons.navigation,
-                color: Colors.white,
-                size: 14,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 
 
-class _NavigationMarker extends StatelessWidget {
-  final double heading;
 
-  const _NavigationMarker({
-    super.key,
-    required this.heading,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Transform.rotate(
-      angle: heading * (3.1415926535 / 180),
-      child: SizedBox(
-        width: 46,
-        height: 54,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Main Marker
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: const Color(0xFF1A73E8),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(
-                  color: Colors.white,
-                  width: 2,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(.25),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: const Center(
-                child: Icon(
-                  Icons.directions_car_filled,
-                  color: Colors.white,
-                  size: 22,
-                ),
-              ),
-            ),
-
-            // Triangle
-            CustomPaint(
-              size: const Size(14, 10),
-              painter: _TrianglePainter(),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _TrianglePainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = const Color(0xFF1A73E8)
-      ..style = PaintingStyle.fill;
-
-    final path = Path()
-      ..moveTo(size.width / 2, size.height)
-      ..lineTo(0, 0)
-      ..lineTo(size.width, 0)
-      ..close();
-
-    canvas.drawShadow(path, Colors.black26, 3, true);
-    canvas.drawPath(path, paint);
-  }
-
-  @override
-  bool shouldRepaint(CustomPainter oldDelegate) => false;
-}
