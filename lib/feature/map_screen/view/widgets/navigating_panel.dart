@@ -52,12 +52,14 @@ class NavigatingPanel extends StatelessWidget {
         Obx(() => Row(
           children: [
             InfoChip(
+              title: "Distance",
               icon: Icons.straighten,
               label: controller.remainingDistance.value,
               color: const Color(0xFF4A9EFF),
             ),
             const SizedBox(width: 12),
             InfoChip(
+              title: "ETA",
               icon: Icons.timer,
               label: controller.remainingDuration.value,
               color: const Color(0xFFFF6B35),

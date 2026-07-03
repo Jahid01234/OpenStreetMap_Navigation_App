@@ -5,7 +5,10 @@ import 'package:open_streetmap_app/feature/map_screen/controller/map_connection_
 class RouteReadyPanel extends StatelessWidget {
   final MapConnectionController controller;
 
-  const RouteReadyPanel({super.key, required this.controller});
+  const RouteReadyPanel({
+    super.key,
+    required this.controller,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -51,12 +54,14 @@ class RouteReadyPanel extends StatelessWidget {
         Row(
           children: [
             InfoChip(
+              title: "Distance",
               icon: Icons.straighten,
               label: controller.remainingDistance.value,
               color: const Color(0xFF4A9EFF),
             ),
             const SizedBox(width: 12),
             InfoChip(
+              title: "ETA",
               icon: Icons.timer,
               label: controller.remainingDuration.value,
               color: const Color(0xFFFF6B35),

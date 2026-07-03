@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 
 class InfoChip extends StatelessWidget {
   final IconData icon;
+  final String title;
   final String label;
   final Color color;
 
   const InfoChip({
     super.key,
     required this.icon,
+    required this.title,
     required this.label,
     required this.color,
   });
@@ -25,13 +27,28 @@ class InfoChip extends StatelessWidget {
         children: [
           Icon(icon, color: color, size: 16),
           const SizedBox(width: 6),
-          Text(
-            label,
-            style: TextStyle(
-              color: color,
-              fontWeight: FontWeight.bold,
-              fontSize: 14,
-            ),
+
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                title,
+                style: TextStyle(
+                  color: color,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              Text(
+                label,
+                style: TextStyle(
+                  color: color,
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
           ),
         ],
       ),
