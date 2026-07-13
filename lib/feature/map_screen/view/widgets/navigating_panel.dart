@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:open_streetmap_app/core/global_widget/info_chip.dart';
+import 'package:open_streetmap_app/core/style/global_text_style.dart';
 import 'package:open_streetmap_app/feature/map_screen/controller/map_connection_controller.dart';
 
 class NavigatingPanel extends StatelessWidget {
@@ -37,7 +38,7 @@ class NavigatingPanel extends StatelessWidget {
               Expanded(
                 child: Text(
                   step?.instruction ?? 'Follow the route',
-                  style: const TextStyle(
+                  style: globalTextStyle(
                     color: Colors.white,
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -70,22 +71,22 @@ class NavigatingPanel extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 14,
-                  vertical: 8,
+                  vertical: 10,
                 ),
                 decoration: BoxDecoration(
                   color: const Color(0xFFFF4757),
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.stop, color: Colors.white, size: 16),
-                    SizedBox(width: 4),
+                    const Icon(Icons.stop, color: Colors.white, size: 16),
+                    const SizedBox(width: 4),
                     Text(
                       'Stop',
-                      style: TextStyle(
+                      style: globalTextStyle(
                         color: Colors.white,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w800,
                       ),
                     ),
                   ],

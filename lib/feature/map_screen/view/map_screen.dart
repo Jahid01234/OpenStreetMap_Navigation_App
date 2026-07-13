@@ -75,7 +75,7 @@ class MapScreen extends StatelessWidget {
           // ── Right Side Controls ────────────────────────────────────────
           Positioned(
             right: 14,
-            bottom: 220,
+            bottom: 240,
             child:  MapControlButtons(controller: controller),
           ),
 

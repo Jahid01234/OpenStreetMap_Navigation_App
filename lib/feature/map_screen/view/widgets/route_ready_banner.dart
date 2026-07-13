@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:open_streetmap_app/core/style/global_text_style.dart';
 import 'package:open_streetmap_app/feature/map_screen/controller/map_connection_controller.dart';
 
 class RouteReadyBanner extends StatelessWidget {
@@ -19,7 +20,10 @@ class RouteReadyBanner extends StatelessWidget {
           color: const Color(0xFF1A2332),
           borderRadius: BorderRadius.circular(10),
           boxShadow: [
-            BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 8),
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.2),
+              blurRadius: 8,
+            ),
           ],
         ),
         child: Row(
@@ -29,7 +33,7 @@ class RouteReadyBanner extends StatelessWidget {
             const SizedBox(width: 8),
             Text(
               'Route ready  •  ${controller.remainingDistance.value}',
-              style: const TextStyle(
+              style: globalTextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.w600,
                 fontSize: 13,

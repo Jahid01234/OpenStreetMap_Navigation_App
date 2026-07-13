@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:open_streetmap_app/core/style/global_text_style.dart';
 import 'package:open_streetmap_app/feature/map_screen/controller/map_connection_controller.dart';
 
 class SearchBarWidget extends StatelessWidget {
   final MapConnectionController controller;
-  const SearchBarWidget({super.key, required this.controller});
+
+  const SearchBarWidget({
+    super.key,
+    required this.controller,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -29,10 +34,13 @@ class SearchBarWidget extends StatelessWidget {
             ),
             child: TextField(
               onChanged: controller.onSearchChanged,
-              style: const TextStyle(fontSize: 15, color: Color(0xFF1A2332)),
+              style: globalTextStyle(
+                  fontSize: 15,
+                  color: Color(0xFF1A2332),
+              ),
               decoration: InputDecoration(
                 hintText: 'Search destination...',
-                hintStyle: TextStyle(color: Colors.grey.shade500),
+                hintStyle: globalTextStyle(color: Colors.grey.shade500),
                 prefixIcon: const Icon(Icons.search, color: Color(0xFF4A9EFF)),
                 suffixIcon: controller.searchQuery.value.isNotEmpty
                     ? IconButton(
@@ -84,7 +92,7 @@ class SearchBarWidget extends StatelessWidget {
                       result.displayName,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
+                      style: globalTextStyle(
                         fontSize: 13,
                         color: Color(0xFF1A2332),
                       ),

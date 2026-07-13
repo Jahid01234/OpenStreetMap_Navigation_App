@@ -1,21 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:open_streetmap_app/core/style/global_text_style.dart';
 
 class LoadingPanel extends StatelessWidget {
   const LoadingPanel({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const Column(
+    return  Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        SizedBox(height: 8),
-        CircularProgressIndicator(color: Color(0xFF4A9EFF)),
-        SizedBox(height: 12),
+        const SizedBox(height: 8),
+        const CircularProgressIndicator(color: Color(0xFF4A9EFF)),
+        const SizedBox(height: 12),
         Text(
           'Finding best route...',
-          style: TextStyle(color: Colors.white70, fontSize: 14),
+          style: globalTextStyle(
+              color: Colors.white70,
+              fontSize: 14,
+          ),
         ),
-        SizedBox(height: 8),
+        const SizedBox(height: 8),
       ],
     );
   }

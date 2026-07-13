@@ -18,7 +18,6 @@ class MapLayersWidget extends StatelessWidget {
       final navPos = controller.navigationPosition.value;
       final route = controller.routeResult.value;
 
-
       return Stack(
         children: [
           // Route Polyline
@@ -67,18 +66,18 @@ class MapLayersWidget extends StatelessWidget {
                   ),
                 ),
 
-               // Moving Navigation Marker
-                if (navPos != null &&
-                    navPos.latitude.isFinite &&
-                    navPos.longitude.isFinite)
-                  Marker(
-                    point: navPos,
-                    width: 60,
-                    height: 60,
-                    child: NavigationMarker(
-                      heading: controller.userHeading.value,
-                    ),
+              // Moving Navigation Marker
+              if (navPos != null &&
+                  navPos.latitude.isFinite &&
+                  navPos.longitude.isFinite)
+                Marker(
+                  point: navPos,
+                  width: 60,
+                  height: 60,
+                  child: NavigationMarker(
+                    heading: controller.userHeading.value,
                   ),
+                ),
             ],
           ),
         ],
@@ -86,8 +85,3 @@ class MapLayersWidget extends StatelessWidget {
     });
   }
 }
-
-
-
-
-

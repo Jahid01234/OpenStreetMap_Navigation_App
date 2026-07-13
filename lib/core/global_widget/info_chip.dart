@@ -17,17 +17,19 @@ class InfoChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      padding: const EdgeInsets.symmetric(
+          horizontal: 20,
+          vertical: 8,
+      ),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: color, size: 16),
-          const SizedBox(width: 6),
-
+          Icon(icon, color: color, size: 20),
+          const SizedBox(width: 10),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
@@ -36,7 +38,7 @@ class InfoChip extends StatelessWidget {
                 title,
                 style: TextStyle(
                   color: color,
-                  fontSize: 11,
+                  fontSize: 13,
                   fontWeight: FontWeight.w500,
                 ),
               ),

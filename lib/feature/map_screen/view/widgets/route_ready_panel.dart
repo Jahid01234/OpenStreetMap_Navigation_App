@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:open_streetmap_app/core/global_widget/info_chip.dart';
+import 'package:open_streetmap_app/core/style/global_text_style.dart';
 import 'package:open_streetmap_app/feature/map_screen/controller/map_connection_controller.dart';
 
 class RouteReadyPanel extends StatelessWidget {
   final MapConnectionController controller;
 
-  const RouteReadyPanel({
-    super.key,
-    required this.controller,
-  });
+  const RouteReadyPanel({super.key, required this.controller});
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +36,7 @@ class RouteReadyPanel extends StatelessWidget {
                 controller.destinationAddress.value.isNotEmpty
                     ? controller.destinationAddress.value
                     : 'Selected Destination',
-                style: const TextStyle(
+                style: globalTextStyle(
                   color: Colors.white,
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
@@ -76,9 +74,12 @@ class RouteReadyPanel extends StatelessWidget {
               child: ElevatedButton.icon(
                 onPressed: controller.startNavigation,
                 icon: const Icon(Icons.navigation, size: 18),
-                label: const Text(
+                label: Text(
                   'Start',
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                  style: globalTextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF4A9EFF),

@@ -5,6 +5,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:open_streetmap_app/core/service/location_service.dart';
+import 'package:open_streetmap_app/core/style/global_text_style.dart';
 import 'package:open_streetmap_app/feature/map_screen/model/route_model.dart';
 import 'package:open_streetmap_app/feature/map_screen/model/route_step_model.dart';
 import 'package:open_streetmap_app/feature/map_screen/model/search_result_model.dart';
@@ -36,6 +37,7 @@ class MapConnectionController extends GetxController {
   Timer? _navSimulationTimer;
   int _routePointIndex = 0;
   final Distance _distCalc = const Distance();
+  bool _isArrivalDialogShown = false;
 
 
 
@@ -45,13 +47,7 @@ class MapConnectionController extends GetxController {
     _initLocation();
   }
 
-  @override
-  void onClose() {
-    _locationSub?.cancel();
-    _searchDebounce?.cancel();
-    _navSimulationTimer?.cancel();
-    super.onClose();
-  }
+
 
   // ── Location Init ─────────────────────────────────────────────────────────
   Future<void> _initLocation() async {
@@ -267,39 +263,60 @@ class MapConnectionController extends GetxController {
     }
 
     // Arrived
-    if (distToDest < 30) {
+    if (distToDest < 30 && !_isArrivalDialogShown) {
       _onArrived();
     }
   }
 
 
   void _onArrived() {
+    if (_isArrivalDialogShown) return;
+
+    _isArrivalDialogShown = true;
+
+    _navSimulationTimer?.cancel();
+
     navState.value = NavState.idle;
+
     Get.dialog(
       AlertDialog(
-        backgroundColor: const Color(0xFF1A2332),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        title: Text(
           '🎉 Arrived!',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style: globalTextStyle(
+            fontSize: 16,
+            color: Colors.black,
+            fontWeight: FontWeight.w800,
+          ),
         ),
         content: Text(
           'You have reached ${destinationAddress.value}',
-          style: const TextStyle(color: Colors.white70),
+          style: globalTextStyle(
+          color: Colors.grey,
+          fontWeight: FontWeight.w400,
+        ),
         ),
         actions: [
           TextButton(
             onPressed: () {
               Get.back();
               clearRoute();
+              _isArrivalDialogShown = false;
             },
-            child: const Text(
+            child: Text(
               'Done',
-              style: TextStyle(color: Color(0xFF4A9EFF)),
+              style: globalTextStyle(
+              color: Colors.grey,
+              fontWeight: FontWeight.w600,
+            ),
             ),
           ),
         ],
       ),
+      barrierDismissible: false,
     );
   }
 
@@ -315,6 +332,7 @@ class MapConnectionController extends GetxController {
   }
 
   void clearRoute() {
+    _isArrivalDialogShown = false;
     navState.value = NavState.idle;
     destinationPoint.value = null;
     routeResult.value = null;
@@ -358,4 +376,13 @@ class MapConnectionController extends GetxController {
 
   bool get isNavigating => navState.value == NavState.navigating;
   bool get hasRoute => routeResult.value != null;
+
+
+  @override
+  void onClose() {
+    _locationSub?.cancel();
+    _searchDebounce?.cancel();
+    _navSimulationTimer?.cancel();
+    super.onClose();
+  }
 }
